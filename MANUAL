@@ -1,0 +1,29 @@
+SAMVerify MANUAL
+
+SAMVerify is written in Python and runs from Python 2.7.10 to Python 3.5.1. See README for installation instructions.
+Make sure to run with running with `python3` command. The output is written to stdout.
+
+Commands and Options
+
+	Basic Command Structure:
+
+		$ python3 verify.py <flag> <path> <flag> <header>
+			# Flags can come in any order but must be followed by corresponding information
+
+	Flags
+
+		-man
+			# Prints Commands and Options section of MANUAL
+			# Does not run the script if included, only prints the MANUAL
+
+		-sam (required)
+			# Followed by the path/to/file_name.sam
+
+		-ref_dir (required)
+			# Followed by the path to the directory containing chr_.fa
+
+		-header (optional)
+			# Followed by the header of target read
+			# If the header is mapped more that once, i.e. paired-end and secondary mapping, all SAM records are verified
+			# If no header is given, the first read is verified
+
