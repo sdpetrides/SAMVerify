@@ -1,6 +1,6 @@
 SAMVerify
 
-	SAMVerify uses a SAM recond to reconstruct the seqeunce of a mapped read and find the read in the gemome. 
+	SAMVerify uses a SAM record to reconstruct the sequence of a mapped read and find the read in the genome.
 
 Capabilities
 	- Reconstruct reference sequence of mapped read from SAM record
