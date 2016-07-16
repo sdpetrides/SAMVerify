@@ -6,33 +6,25 @@ import json
 
 ## Print Reference ##
 
-def find_in_ref(sam_line):
-	if '-ref_dir' in param_set:
-		chromosome = sam_line[2]
-		chromosome_str = ref_dir_str + '/' + chromosome + '.fa'
-		chromosome_file = open(chromosome_str, 'rt')
+def find_in_ref(sam_line, ref_dir_str):
+	chromosome = sam_line[2]
+	chromosome_str = ref_dir_str + '/' + chromosome + '.fa'
+	chromosome_file = open(chromosome_str, 'rt')
+	position = int(sam_line[3])
+	seq_len = len(raw_seq)
 
-		position = int(sam_line[3])
-		seq_len = len(raw_seq)
+	chromosome_file_str = chromosome_file.read().replace('\n', '').upper()
+	ref_seq = chromosome_file_str[len(chromosome)+position:len(chromosome)+position+seq_len]
 
-		chromosome_file_str = chromosome_file.read().replace('\n', '').upper()
-		ref_seq = chromosome_file_str[len(chromosome)+position:len(chromosome)+position+seq_len]
-
-		print("Reference:\t" + ref_seq)
+	print("Reference:\t" + ref_seq)
 
 	else:
 		print("Parameters not entered correctly. See MANUAL for proper syntax.\nError: No reference genome specified.")
 
 ## Reconstruct Reference ##
 
-# print what bowtie reported as the reference
-	# start with SEQ and CIGAR
-		# find any insertions and delete from SEQ
-	# compare SEQ and MD
-		# replace mismatches and insert bases from deletions
-
 def reconstruct(sam_line):
-	reconstruct_str = raw_seq
+	reconstruct_str = sam_line[9]
 	cigar_str = sam_line[5]
 	for field in sam_line:
 		if field[0:2] == 'MD':
@@ -76,75 +68,83 @@ def reconstruct(sam_line):
 
 
 #### MAIN ####
+def main():
+	## Set Parameters ##
 
+	argc = len(sys.argv)
+	param_set = set()
+	param_count = 1
 
-## Set Parameters ##
+	manual = ["\nCommands and Options", "\n\n\tBasic Command Structure:", "\n\n\t\t$ python3 verify.py <flag> <path>",
+	"\n\t\t\t# Flags can come in any order but must be followed by corresponding information",
+	"\n\tFlags", "\n\t\t-man", "\n\t\t\t# Prints Commands and Options section of MANUAL.", "\n\t\t-sam",
+	"\n\t\t\t# Followed by the path/to/file_name.sam", "\n\t\t-ref_dir",
+	"\n\t\t\t# Followed by the path to the directory containing chr_.fa", "\n\t\t-header (optional)",
+	"\n\t\t\t# Followed by the header of target read", "\n\t\t\t# If no header is given the first read is verified"]
 
-argc = len(sys.argv)
-param_set = set()
-param_count = 1
-
-manual = ["\nCommands and Options", "\n\n\tBasic Command Structure:", "\n\n\t\t$ python3 verify.py <flag> <path>",
-"\n\t\t\t# Flags can come in any order but must be followed by corresponding information",
-"\n\tFlags", "\n\t\t-man", "\n\t\t\t# Prints Commands and Options section of MANUAL.", "\n\t\t-sam",
-"\n\t\t\t# Followed by the path/to/file_name.sam", "\n\t\t-ref_dir",
-"\n\t\t\t# Followed by the path to the directory containing chr_.fa", "\n\t\t-header (optional)",
-"\n\t\t\t# Followed by the header of target read", "\n\t\t\t# If no header is given the first read is verified"]
-
-while param_count <= argc-1:
-	param_str = sys.argv[param_count]
-	param_set.add(param_str)
-	param_count +=1
-	if param_str[0] is not '-':
-		print("Parameters not entered correctly. See MANUAL for proper syntax.\nError: " + param_str)
-		sys.exit(0)
-	else:
-		if param_str == '-man':
-			print(''.join(manual))
+	while param_count <= argc-1:
+		param_str = sys.argv[param_count]
+		param_set.add(param_str)
+		param_count +=1
+		if param_str[0] is not '-':
+			print("Parameters not entered correctly. See MANUAL for proper syntax.\nError: " + param_str)
 			sys.exit(0)
-		elif param_str == '-sam':
-			param_str = sys.argv[param_count]
-			param_count +=1
-			sam_str = param_str
-		elif param_str == '-ref_dir':
-			param_str = sys.argv[param_count]
-			param_count +=1
-			ref_dir_str = param_str
-		elif param_str == '-header':
-			param_str = sys.argv[param_count]
-			param_count +=1
-			header_str = param_str
+		else:
+			if param_str == '-man':
+				print(''.join(manual))
+				sys.exit(0)
+			elif param_str == '-sam':
+				param_str = sys.argv[param_count]
+				param_count +=1
+				sam_str = param_str
+			elif param_str == '-ref_dir':
+				param_str = sys.argv[param_count]
+				param_count +=1
+				ref_dir_str = param_str
+			elif param_str == '-header':
+				param_str = sys.argv[param_count]
+				param_count +=1
+				header_str = param_str
 
 ## Print Sequence From SAM ##
 
-sam_file = open(sam_str, 'rt')
+	sam_file = open(sam_str, 'rt')
 
-if '-header' in param_set:
-	print('\nHeader:\t' + header_str)
-	for line in sam_file:
-		sam_line = line.split()
-		if sam_line[0] == header_str:
-			position = sam_line[3]
-			raw_seq = sam_line[9]
-			print('Position:\t' + position + '\t' + sam_line[2] + '\t' + sam_line[11])
-			print('Read:\t\t' + raw_seq)
+	if '-header' in param_set:
+		print('\nHeader:\t' + header_str)
+		for line in sam_file:
+			sam_line = line.split()
+			if sam_line[0] == header_str:
+				position = sam_line[3]
+				raw_seq = sam_line[9]
+				print('Position:\t' + position + '\t' + sam_line[2] + '\t' + sam_line[11])
+				print('Read:\t\t' + raw_seq)
 
-			find_in_ref(sam_line)			# call function to print from reference
-			reconstruct(sam_line)			# call function to reconstruct from CIGAR and TAGs
+				if '-ref_dir' in param_set:
+					find_in_ref(sam_line, ref_dir_str)			# call function to print from reference
+					reconstruct(sam_line)						# call function to reconstruct from CIGAR and TAGs
+				else: 
+					print("Parameters not entered correctly. See MANUAL for proper syntax.\nError: No reference genome specified.")
 
-else:
-	for line in sam_file:			# without a header specified, it takes the first sam record
-		sam_line = line.split()
-		first_word = sam_line[0]
-		if first_word[0] != '@':
-			print('Header:\t\t' + first_word)
-			position = sam_line[3]
-			raw_seq = sam_line[9]
-			print('Position:\t' + position + '\t' + sam_line[2])
-			print('Read:\t\t' + raw_seq)
-			find_in_ref(sam_line)
-			reconstruct(sam_line)
-			break;
+	else:
+		for line in sam_file:			# without a header specified, it takes the first sam record
+			sam_line = line.split()
+			first_word = sam_line[0]
+			if first_word[0] != '@':
+				print('Header:\t\t' + first_word)
+				position = sam_line[3]
+				raw_seq = sam_line[9]
+				print('Position:\t' + position + '\t' + sam_line[2])
+				print('Read:\t\t' + raw_seq)
+				if '-ref_dir' in param_set:
+					find_in_ref(sam_line, ref_dir_str)
+					reconstruct(sam_line)
+					break;
+				else:
+					print("Parameters not entered correctly. See MANUAL for proper syntax.\nError: No reference genome specified.")	
+
+if __name__ == "__main__":
+    main()
 
 
 
