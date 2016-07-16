@@ -8,6 +8,7 @@ import json
 
 def find_in_ref(sam_line, ref_dir_str):
 	chromosome = sam_line[2]
+	raw_seq = sam_line[9]
 	chromosome_str = ref_dir_str + '/' + chromosome + '.fa'
 	chromosome_file = open(chromosome_str, 'rt')
 	position = int(sam_line[3])
@@ -17,9 +18,6 @@ def find_in_ref(sam_line, ref_dir_str):
 	ref_seq = chromosome_file_str[len(chromosome)+position:len(chromosome)+position+seq_len]
 
 	print("Reference:\t" + ref_seq)
-
-	else:
-		print("Parameters not entered correctly. See MANUAL for proper syntax.\nError: No reference genome specified.")
 
 ## Reconstruct Reference ##
 
