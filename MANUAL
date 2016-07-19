@@ -1,6 +1,6 @@
 SAMVerify MANUAL
 
-SAMVerify is written in Python and runs from Python 2.7.10 to Python 3.5.1. See README for installation instructions.
+SAMVerify is written in Python and runs from Python 3.5.1 onward. See README for installation instructions.
 Make sure to run with running with `python3` command. The output is written to stdout.
 
 Commands and Options
@@ -19,11 +19,52 @@ Commands and Options
 		-sam (required)
 			# Followed by the path/to/file_name.sam
 
-		-ref_dir (required)
-			# Followed by the path to the directory containing chr_.fa
+		-ref (required)
+			# Either a path to a whole genome.fa or a path to directory containing chr_.fa files
+		
+		-ref_idx (optional)
+			# Use if whole genome is used and .fai is in different directory or with 
+				difference file name than [whole_genome_file.fa].fai
 
 		-header (optional)
 			# Followed by the header of target read
 			# If the header is mapped more that once, i.e. paired-end and secondary mapping, all SAM records are verified
 			# If no header is given, the first read is verified
+
+Modules
+	
+	find_in_ref
+		Description: Prints specified sequence from provided reference.
+		Parameters (All strings except #6):
+			1. Chromosome: must match the .fai and .fa files provided
+			2. Position: 1-based
+			3. Sequence Length
+			4. Reference Genome: either path to .fa or path to directory with chr_.fa files
+			5. [Optional] Genome Index: ref_str_idx=path/to/.fa.fai
+				- use only if .fa.fai file is not located in same directory as genome.fa or has different name
+			6. [Optional] Reverse Complemented: rev_comp=True
+		Example: 
+			>>> import verify
+			>>> verify.find_in_ref('chrM', '1000', '20', '/path/to/WholeGenomeFasta/genome.fa')
+			'ACTGGAAAGTGTGCTTGGAA'
+
+			>>> verify.find_in_ref('chrM', '1000', '20', '/path/to/WholeGenomeFasta/genome.fa', rev_comp=True)	
+			'TTCCAAGCACACTTTCCAGT'
+
+	reconstruct
+		Description: Uses SAM record to reconstruct the reference that the read is mapped to.
+		Parameters: SAM record as a string
+		Example:
+			>>> import verify
+			>>> verify.reconstruct('NB500989:3:HHJWVBGXX:1:11101:4945:1103  99      chr3    32419406        255     76M     =       32419444        113     CAAGCATCTAAATTCACATCTATCTGAAGGGATTTACTTATGCCAATATTGTGAATATTCAACAGGACAAATTGAC    AAAAAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE    AS:i:0  XN:i:0  XM:i:0  XO:i:0  XG:i:0  NM:i:0  MD:Z:76 YS:i:-5 YT:Z:CP')
+			'CAAGCATCTAAATTCACATCTATCTGAAGGGATTTACTTATGCCAATATTGTGAATATTCAACAGGACAAATTGAC'
+
+	reverse_complement
+		Description: Reverse complements DNA with 'ATCG' pattern. Case-insensitive.
+		Parameters: DNA sequence as a string
+		Example:
+			>>> import verify
+
+
+
 
