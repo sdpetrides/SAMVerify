@@ -64,6 +64,8 @@ Modules
 		Parameters: DNA sequence as a string
 		Example:
 			>>> import verify
+			>>> verify.reverse_complement('AATAGGAaAATtAAgtaC')
+			'GTACTTAATTTTCCTATT'
 
 
 
